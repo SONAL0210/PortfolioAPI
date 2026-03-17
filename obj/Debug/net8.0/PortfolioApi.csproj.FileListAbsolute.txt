@@ -1,7 +1,0 @@
-/Users/sonalsourav/PortfolioApi/obj/Debug/net8.0/PortfolioApi.csproj.AssemblyReference.cache
-/Users/sonalsourav/PortfolioApi/obj/Debug/net8.0/PortfolioApi.GeneratedMSBuildEditorConfig.editorconfig
-/Users/sonalsourav/PortfolioApi/obj/Debug/net8.0/PortfolioApi.AssemblyInfoInputs.cache
-/Users/sonalsourav/PortfolioApi/obj/Debug/net8.0/PortfolioApi.AssemblyInfo.cs
-/Users/sonalsourav/PortfolioApi/obj/Debug/net8.0/PortfolioApi.csproj.CoreCompileInputs.cache
-/Users/sonalsourav/PortfolioApi/obj/Debug/net8.0/PortfolioApi.MvcApplicationPartsAssemblyInfo.cs
-/Users/sonalsourav/PortfolioApi/obj/Debug/net8.0/PortfolioApi.MvcApplicationPartsAssemblyInfo.cache
