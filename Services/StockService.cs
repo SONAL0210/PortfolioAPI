@@ -1,18 +1,19 @@
 using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.VisualBasic;
 using PortfolioApi.DTOs;
 using PortfolioApi.Repositories;
 using PortfolioApi.Shared.Exceptions;
+using System.Text.Json;
 
 namespace PortfolioApi.Services;
 public class StockService : IStockService
 {
-    private readonly IMemoryCache _cache;
+    private readonly IDistributedCache _cache;
 
     private readonly IPortfolioRepository _repository;
 
-    public StockService(IMemoryCache cache, IPortfolioRepository repository)
+    public StockService(IDistributedCache cache, IPortfolioRepository repository)
     {
         _cache = cache;
         _repository = repository;
@@ -21,18 +22,27 @@ public class StockService : IStockService
     public async Task<StockDto> GetStockAsync(string symbol)
     {
         symbol = symbol.ToUpper();
-        if (_cache.TryGetValue(symbol, out StockDto cached))
+        var cacheKey = $"stock:{symbol}";
+
+        try
         {
-            return cached;
+            var cachedJson = await _cache.GetStringAsync(cacheKey);
+            if (!string.IsNullOrEmpty(cachedJson))
+            {
+                var cachedStock = JsonSerializer.Deserialize<StockDto>(cachedJson);
+                if (cachedStock is not null)
+                    return cachedStock;
+            }
+        }
+        catch (Exception)
+        {
+            // log error (later we add ILogger)
+            // fallback to DB
         }
 
-        var stocks = _repository.GetPortfolio();
-        var stock = stocks.FirstOrDefault(s => s.Symbol == symbol);
-
-        if (stock == null)
-        {
+        var stock = _repository.GetPortfolio().FirstOrDefault(s => s.Symbol == symbol);
+        if (stock is null)
             throw new StockNotFoundException(symbol);
-        }
 
         var stockDto = new StockDto
         {
@@ -41,7 +51,21 @@ public class StockService : IStockService
             BuyPrice = stock.BuyPrice
         };
 
-        _cache.Set(symbol, stockDto, TimeSpan.FromSeconds(30));
+        try
+        {
+            var options = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30)
+            };
+
+            var json = JsonSerializer.Serialize(stockDto);
+            await _cache.SetStringAsync(cacheKey, json, options);
+        }
+        catch (Exception)
+        {
+            // log error
+            // don't fail request
+        }
 
         return stockDto;
     }

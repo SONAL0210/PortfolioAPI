@@ -1,29 +1,42 @@
+using PortfolioApi.Data;
 using PortfolioApi.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace PortfolioApi.Repositories
 {
     public class PortfolioRepository : IPortfolioRepository
     {
-        private static Dictionary<string , Stock> _stocks= new();
+        private readonly PortfolioDbContext _context;
 
-        public List<Stock> GetPortfolio()
+        public PortfolioRepository(PortfolioDbContext context)
         {
-            return _stocks.Values.ToList();
+            _context = context;
+
         }
 
-        public void AddStock(Stock stock)
+        public async Task<List<Stock>> GetPortfolioAsync()
         {
-            if(_stocks.ContainsKey(stock.Symbol))
-            {
-                _stocks[stock.Symbol].Quantity += stock.Quantity;
+            return await _context.Stocks.ToListAsync();
+        }
 
-            }
-            else
-            {
-                _stocks.Add(stock.Symbol,stock);
-            }
-            
+        public async Task AddStockAsync(Stock stock)
+        {
+            await _context.Stocks.AddAsync(stock);
 
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<Stock?> GetBySymbolAsync(string symbol)
+        {
+            return await _context.Stocks.FirstOrDefaultAsync(s => s.Symbol == symbol);
+
+        }
+        
+        public async Task UpdateStockAsync(Stock stock)
+        {
+            _context.Stocks.Update(stock);
+            await _context.SaveChangesAsync();
         }
     }
 }

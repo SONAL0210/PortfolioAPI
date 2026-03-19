@@ -2,6 +2,7 @@ using PortfolioApi.Repositories;
 using PortfolioApi.Models;
 using System.Linq;
 using PortfolioApi.DTOs;
+using PortfolioApi.Shared.Exceptions;
 
 namespace PortfolioApi.Services
 {
@@ -14,12 +15,11 @@ namespace PortfolioApi.Services
             _repository = repository;
         }
 
-        public PortfolioResponseDto GetPortfolio()
+        public async Task<PortfolioResponseDto> GetPortfolioAsync()
         {
-            var stocks = _repository.GetPortfolio();
+            var stocks = await _repository.GetPortfolioAsync();
 
-            var stockDtos = stocks.Select(s => 
-            new StockDto
+            var stockDtos = stocks.Select(s => new StockDto
             {
                 Symbol = s.Symbol,
                 Quantity = s.Quantity,
@@ -34,33 +34,35 @@ namespace PortfolioApi.Services
             };
         }
 
-        public void AddStock(CreateStockRequestDto request)
+        public async Task AddStockAsync(CreateStockRequestDto request)
         {
-            var stock = new Stock
+            // Validation
+            if (request.Quantity <= 0)
+                throw new BadRequestException("Quantity must be greater than 0");
+
+            if (string.IsNullOrWhiteSpace(request.Symbol))
+                throw new BadRequestException("Symbol is required");
+
+            var symbol = request.Symbol.ToUpper();
+
+            var existing = await _repository.GetBySymbolAsync(symbol);
+
+            if (existing != null)
             {
-                Symbol = request.Symbol.ToUpper(),
-                Quantity = request.Quantity,
-                BuyPrice = request.BuyPrice
-
-            };
-
-            _repository.AddStock(stock);
-
-            /*var stocks = _repository.GetPortfolio();
-
-            var existing = stocks.FirstOrDefault(s=> s.Symbol == stock.Symbol);
-
-            if( existing != null)
-            {
-                
-                existing.Quantity += stock.Quantity;
-                
+                existing.Quantity += request.Quantity;
+                await _repository.UpdateStockAsync(existing);
             }
             else
             {
-                _repository.AddStock(stock);
-            }*/
-            
+                var stock = new Stock
+                {
+                    Symbol = symbol,
+                    Quantity = request.Quantity,
+                    BuyPrice = request.BuyPrice
+                };
+
+                await _repository.AddStockAsync(stock);
+            }
         }
     }
 }

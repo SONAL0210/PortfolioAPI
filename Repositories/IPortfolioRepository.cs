@@ -4,8 +4,12 @@ namespace PortfolioApi.Repositories
 {
     public interface IPortfolioRepository
     {
-        List<Stock> GetPortfolio();
-        void AddStock(Stock stock);
+        Task<List<Stock>> GetPortfolioAsync();
+        Task AddStockAsync(Stock stock);
+
+        Task<Stock?> GetBySymbolAsync(string symbol);
+
+        Task UpdateStockAsync(Stock stock);
 
     }
 }

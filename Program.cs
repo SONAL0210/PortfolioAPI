@@ -1,6 +1,9 @@
 using PortfolioApi.Services;
 using PortfolioApi.Repositories;
 using PortfolioApi.Middleware;
+using Microsoft.EntityFrameworkCore;
+using PortfolioApi.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,16 @@ builder.Services.AddControllers();
 
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IStockService, StockService>();
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "PortfolioApi_";
+});
+
+builder.Services.AddDbContext<PortfolioDbContext>(options =>
+    options.UseSqlite("Data Source=portfolio.db"));
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

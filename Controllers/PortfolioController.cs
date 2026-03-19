@@ -15,24 +15,16 @@ public class PortfolioController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetPortfolio()
+    public async Task<IActionResult> GetPortfolio()
     {
-        var result = _service.GetPortfolio();
-
+        var result = await _service.GetPortfolioAsync();
         return Ok(result);
     }
 
     [HttpPost("add-stock")]
-    public IActionResult AddStock(CreateStockRequestDto request)
+    public async Task<IActionResult> AddStock(CreateStockRequestDto request)
     {
-        try
-        {
-            _service.AddStock(request);
-            return Ok("Stock added successfully");
-        }
-        catch(Exception ex){
-            return BadRequest(ex.Message);
-        }    
+        await _service.AddStockAsync(request);
+        return Ok("Stock added successfully");
     }
-    
 }
