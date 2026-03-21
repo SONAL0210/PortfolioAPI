@@ -5,10 +5,14 @@ namespace PortfolioApi.Models
     public class Stock
     {
         public int Id { get; set; }
+        [Required]
         public string Symbol { get; set; }
 
-        public int Quantity {get; set;}
+        public int Quantity { get; set; }
 
-        public decimal BuyPrice {get; set;}
+        public decimal BuyPrice { get; set; }
+        
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
     }
 }

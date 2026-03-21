@@ -40,7 +40,7 @@ public class StockService : IStockService
             // fallback to DB
         }
 
-        var stock = _repository.GetPortfolio().FirstOrDefault(s => s.Symbol == symbol);
+        var stock = await _repository.GetBySymbolAsync(symbol);
         if (stock is null)
             throw new StockNotFoundException(symbol);
 
